@@ -1,12 +1,14 @@
 // Nombre de nuestra bóveda de caché
-const CACHE_NAME = 'carga-forestal-v1';
+const CACHE_NAME = 'carga-forestal-v2';
 
 // Archivos que necesitamos guardar para que funcione sin internet
 const urlsToCache = [
     './',
     './index.html',
     './styles.css',
-    './script.js'
+    './script.js',
+    // Agregamos la librería de Excel para que se descargue y quede disponible offline
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
 ];
 
 // Fase 1: Instalación (Guardar los archivos en la bóveda)
