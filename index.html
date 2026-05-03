@@ -12,9 +12,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Control de Carga Forestal</title>
     
-    <!-- Enlace al CSS con versionado (?v=1.1) para evitar caché -->
-    <link rel="stylesheet" href="styles.css?v=1.1">
+    <!-- Enlace al CSS -->
     <link rel="stylesheet" href="styles.css">
+    
     <!-- Enlace al archivo de identidad de la App -->
     <link rel="manifest" href="manifest.json">
 </head>
@@ -82,9 +82,9 @@
     </footer>
 
     <!-- ÚNICO llamado al script, ubicado al final del body para no retrasar la carga visual -->
-<script src="script.js"></script>
+    <script src="script.js"></script>
     
-    <!-- Script para instalar el motor Offline -->
+    <!-- Script para instalar el motor Offline (Service Worker) -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
