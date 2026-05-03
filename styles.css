@@ -67,3 +67,16 @@ input:focus { border-color: var(--primary); outline: none; }
 }
 .record-details { font-size: 0.95rem; color: #555; }
 .record-vol { font-weight: bold; color: var(--primary-dark); font-size: 1.1rem; }
+footer {
+    text-align: center;
+    padding: 20px 15px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--secondary); /* Usa el color secundario que ya definimos */
+    border-top: 1px solid var(--border);
+}
+
+footer p {
+    margin: 0;
+    font-weight: 500;
+}
