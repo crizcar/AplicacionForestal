@@ -100,7 +100,7 @@ function setupActionButtons() {
     }
 }
 
-// --- 7. EXPORTAR A EXCEL (CSV) ---
+// --- 7. EXPORTAR A EXCEL NATIVO (.xlsx) ---
 function setupExportButton() {
     const btnExport = document.getElementById('btn-export');
     if (!btnExport) return;
@@ -115,56 +115,61 @@ function setupExportButton() {
         let totalGeneralTrozos = 0;
         let totalGeneralVolumen = 0;
 
+        // 1. Agrupar los datos (misma lógica matemática)
         records.forEach(record => {
             const key = `${record.diameter}-${record.length}`;
             
             if (!summary[key]) {
+                // Creamos los encabezados exactos que leerá el Excel
                 summary[key] = { 
-                    diameter: record.diameter, 
-                    length: record.length, 
-                    quantity: 0, 
-                    volume: 0 
+                    'Diámetro (cm)': record.diameter, 
+                    'Largo (m)': record.length, 
+                    'Cantidad (trozos)': 0, 
+                    'Volumen (m³)': 0 
                 };
             }
             
             const qty = parseInt(record.quantity) || 1;
-            summary[key].quantity += qty;
-            summary[key].volume += record.volume;
+            summary[key]['Cantidad (trozos)'] += qty;
+            summary[key]['Volumen (m³)'] += record.volume;
             
             totalGeneralTrozos += qty;
             totalGeneralVolumen += record.volume;
         });
 
-        let csvContent = "Diametro (cm);Largo (m);Cantidad (trozos);Volumen (m3)\n";
-        const summaryArray = Object.values(summary).sort((a, b) => a.diameter - b.diameter);
+        // 2. Transformar a arreglo y ordenar por diámetro
+        const summaryArray = Object.values(summary).sort((a, b) => a['Diámetro (cm)'] - b['Diámetro (cm)']);
 
+        // Aseguramos que el volumen quede con 4 decimales matemáticos reales
         summaryArray.forEach(row => {
-            const d = row.diameter;
-            const l = row.length.toString().replace('.', ','); 
-            const q = row.quantity;
-            const v = row.volume.toFixed(4).replace('.', ',');
-            
-            csvContent += `${d};${l};${q};${v}\n`;
+            row['Volumen (m³)'] = parseFloat(row['Volumen (m³)'].toFixed(4));
         });
 
-        csvContent += `\nTOTAL;;${totalGeneralTrozos};${totalGeneralVolumen.toFixed(4).replace('.', ',')}\n`;
+        // Añadir la fila final de TOTALES
+        summaryArray.push({
+            'Diámetro (cm)': 'TOTAL',
+            'Largo (m)': '',
+            'Cantidad (trozos)': totalGeneralTrozos,
+            'Volumen (m³)': parseFloat(totalGeneralVolumen.toFixed(4))
+        });
 
-        const blob = new Blob(["\ufeff", csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
+        // 3. Crear el archivo Excel usando la librería SheetJS
+        // Convierte nuestro arreglo de datos directamente en una hoja de Excel
+        const worksheet = XLSX.utils.json_to_sheet(summaryArray);
         
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
+        // Crea un libro de Excel vacío
+        const workbook = XLSX.utils.book_new();
         
+        // Añade la hoja al libro
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Resumen de Carga");
+
+        // 4. Descargar el archivo nativo .xlsx
         const fecha = new Date().toISOString().slice(0, 10);
-        link.setAttribute("download", `Resumen_Carga_${fecha}.csv`);
+        XLSX.writeFile(workbook, `Resumen_Carga_${fecha}.xlsx`);
         
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        triggerVibration();
+        if (navigator.vibrate) navigator.vibrate(50);
     };
 }
-
 // --- 8. RENDERIZADO Y PERSISTENCIA ---
 function saveAndRender() {
     saveToLocalStorage();
