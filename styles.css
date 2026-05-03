@@ -94,3 +94,19 @@ footer p {
     margin: 0;
     font-weight: 500;
 }
+/* Botón Excel */
+.btn-excel {
+    width: 100%;
+    padding: 15px;
+    background: #107c41; /* Verde oficial de Excel */
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(16, 124, 65, 0.3);
+}
+.btn-excel:active {
+    background: #0b5e31;
+}
