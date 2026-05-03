@@ -82,6 +82,21 @@
     </footer>
 
     <!-- ÚNICO llamado al script, ubicado al final del body para no retrasar la carga visual -->
-    <script src="script.js?v=1.1"></script>
+<script src="script.js"></script>
+    
+    <!-- Script para instalar el motor Offline -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registro => {
+                        console.log('Service Worker registrado con éxito:', registro.scope);
+                    })
+                    .catch(error => {
+                        console.log('Error al registrar el Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
