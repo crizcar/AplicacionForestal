@@ -1,167 +1,155 @@
-// --- 1. Variables Globales ---
 let records = [];
-let selectedDiameter = null;
+let backupRecords = []; // Guarda el estado anterior para la función "Deshacer"
 
-// --- 2. Referencias al DOM ---
 const diameterGrid = document.getElementById('diameter-grid');
 const lengthInput = document.getElementById('length-input');
 const qtyInput = document.getElementById('qty-input');
-const btnAdd = document.getElementById('btn-add');
-const btnClear = document.getElementById('btn-clear');
-const recordsList = document.getElementById('records-list');
 const totalVolumeEl = document.getElementById('total-volume');
+const recordsList = document.getElementById('records-list');
 
-// --- 3. Inicialización de la Aplicación ---
+const btnDeleteLast = document.getElementById('btn-delete-last');
+const btnClearAll = document.getElementById('btn-clear-all');
+const btnUndo = document.getElementById('btn-undo');
+
 function init() {
     generateDiameterButtons();
     loadFromLocalStorage();
     renderList();
 }
 
-// --- 4. Lógica de Interfaz ---
-
-// Genera los botones del 12 al 60 (avanzando de 2 en 2)
 function generateDiameterButtons() {
     for (let i = 12; i <= 60; i += 2) {
         const btn = document.createElement('button');
         btn.className = 'btn-dia';
         btn.textContent = i;
-        btn.onclick = () => selectDiameter(i, btn);
+        // Al hacer clic, se ejecuta directamente la suma
+        btn.onclick = () => addRecord(i);
         diameterGrid.appendChild(btn);
     }
 }
 
-// Maneja la selección visual y lógica del diámetro
-function selectDiameter(value, btnElement) {
-    triggerVibration(); // Vibrar al tocar
-    selectedDiameter = value;
-
-    // Quitar la clase 'active' de todos los botones
-    const allButtons = document.querySelectorAll('.btn-dia');
-    allButtons.forEach(b => b.classList.remove('active'));
-
-    // Resaltar el botón presionado
-    btnElement.classList.add('active');
-}
-
-// --- 5. Lógica Principal: Agregar Carga ---
-btnAdd.onclick = () => {
-    // 1. Validaciones
-    if (!selectedDiameter) {
-        alert("Por favor, seleccione un diámetro primero.");
-        return;
-    }
-
-    // Convertir coma a punto de forma automática para evitar errores de tipeo
+function addRecord(diameterCm) {
+    // 1. Validar el largo ingresado
     const lengthValue = lengthInput.value.replace(',', '.');
     const length = parseFloat(lengthValue);
     
     if (isNaN(length) || length <= 0) {
-        alert("El largo ingresado no es válido. Ejemplos válidos: 4.5 o 4,5");
+        alert("Por favor, ingrese un largo válido primero.");
+        lengthInput.focus();
         return;
     }
 
-    const qty = parseInt(qtyInput.value);
-    if (isNaN(qty) || qty <= 0) {
-        alert("La cantidad debe ser un número entero positivo.");
-        return;
-    }
+    const qty = parseInt(qtyInput.value) || 1; // Si está vacío, asume 1
 
-    // 2. Cálculo (Fórmula: D² × largo × cantidad)
-    // Usamos Math.pow() para elevar el diámetro al cuadrado
-    const volume = Math.pow(selectedDiameter, 2) * length * qty;
+    // 2. Cálculo Teórico y Conversión de Unidades
+    // El diámetro está en centímetros, pero el volumen se calcula en metros cúbicos.
+    // Por lo tanto, dividimos el diámetro por 100.
+    const diameterMeters = diameterCm / 100;
+    
+    // Volumen = (D_metros)² * largo * cantidad
+    const volume = Math.pow(diameterMeters, 2) * length * qty;
 
-    // 3. Crear el nuevo registro
+    // 3. Crear y guardar registro
     const newRecord = {
-        id: Date.now(), // ID único basado en la fecha exacta
-        diameter: selectedDiameter,
+        id: Date.now(),
+        diameter: diameterCm,
         length: length,
         quantity: qty,
         volume: volume
     };
 
-    // 4. Guardar y actualizar
+    saveBackup(); // Guardamos el estado actual por si luego queremos deshacer una eliminación futura
     records.push(newRecord);
+    
     saveToLocalStorage();
     renderList();
     triggerVibration();
+    
+    // Nota: El largo y la cantidad NO se limpian, quedan fijos para el siguiente palo.
+}
 
-    // 5. Limpiar inputs de texto, pero mantener el diámetro seleccionado (útil por si los siguientes palos son iguales)
-    lengthInput.value = '';
-    qtyInput.value = '';
-    lengthInput.focus(); 
+// --- LÓGICA DE ELIMINACIÓN Y DESHACER ---
+
+btnDeleteLast.onclick = () => {
+    if (records.length === 0) return;
+    saveBackup(); // Copiamos el arreglo antes de modificarlo
+    records.pop(); // Elimina el último elemento del arreglo
+    saveToLocalStorage();
+    renderList();
+    triggerVibration();
 };
 
-// --- 6. Renderizado de la Lista y Cálculo del Total ---
+btnClearAll.onclick = () => {
+    if (records.length === 0) return;
+    const confirmed = confirm("¿Eliminar todos los registros?");
+    if (confirmed) {
+        saveBackup();
+        records = [];
+        saveToLocalStorage();
+        renderList();
+        triggerVibration();
+    }
+};
+
+btnUndo.onclick = () => {
+    if (backupRecords.length >= 0) {
+        records = [...backupRecords]; // Restauramos el arreglo desde la copia de seguridad
+        saveToLocalStorage();
+        renderList();
+        // Desactivar el botón después de usarlo para evitar confusiones
+        btnUndo.disabled = true; 
+        triggerVibration();
+    }
+};
+
+// Guarda una copia exacta del arreglo 'records' en 'backupRecords'
+function saveBackup() {
+    backupRecords = [...records];
+    btnUndo.disabled = false; // Habilita el botón de deshacer
+}
+
+// --- RENDERIZADO Y PERSISTENCIA ---
+
 function renderList() {
     recordsList.innerHTML = '';
     let totalAccumulated = 0;
 
-    // Recorremos el arreglo de registros de atrás hacia adelante para que el más nuevo salga arriba
-    [...records].reverse().forEach(record => {
+    // Mostramos la lista invertida para ver el último palo agregado arriba
+    [...records].reverse().forEach((record, index) => {
         totalAccumulated += record.volume;
 
         const recordDiv = document.createElement('div');
         recordDiv.className = 'record-item';
         
-        // Plantilla HTML para cada registro
+        // Calculamos un índice visual para saber qué número de palo es
+        const paloNum = records.length - index; 
+
         recordDiv.innerHTML = `
             <div class="record-info">
-                <span class="record-details">D: ${record.diameter}cm | L: ${record.length}m | Cant: ${record.quantity}</span>
-                <span class="record-vol">Vol: ${record.volume.toLocaleString('es-CL')}</span>
+                <div class="record-details">#${paloNum} - D: <b>${record.diameter}</b>cm | L: ${record.length}m | Cant: ${record.quantity}</div>
             </div>
-            <button class="btn-del" onclick="deleteRecord(${record.id})">Borrar</button>
+            <div class="record-vol">${record.volume.toFixed(4)} m³</div>
         `;
         recordsList.appendChild(recordDiv);
     });
 
-    // Actualizar el contador grande superior (formateado con separador de miles)
-    totalVolumeEl.textContent = totalAccumulated.toLocaleString('es-CL');
+    // Mostrar con 4 decimales para mayor precisión en madera
+    totalVolumeEl.textContent = totalAccumulated.toFixed(4);
 }
 
-// --- 7. Eliminar Registros ---
-window.deleteRecord = function(id) {
-    triggerVibration();
-    // Filtramos el arreglo dejando todos menos el que coincida con el ID
-    records = records.filter(record => record.id !== id);
-    saveToLocalStorage();
-    renderList();
-};
-
-// --- 8. Limpiar Toda la Carga ---
-btnClear.onclick = () => {
-    if (records.length === 0) return;
-    
-    // Pide confirmación para evitar borrados accidentales
-    const confirmed = confirm("¿Estás seguro de que deseas eliminar TODOS los registros de este camión?");
-    if (confirmed) {
-        triggerVibration();
-        records = [];
-        saveToLocalStorage();
-        renderList();
-    }
-};
-
-// --- 9. Persistencia de Datos (LocalStorage) ---
 function saveToLocalStorage() {
-    // Convertimos el arreglo a texto (JSON) para poder guardarlo en el navegador
     localStorage.setItem('forestryData', JSON.stringify(records));
 }
 
 function loadFromLocalStorage() {
     const savedData = localStorage.getItem('forestryData');
     if (savedData) {
-        records = JSON.parse(savedData); // Convertimos el texto de vuelta a arreglo
+        records = JSON.parse(savedData);
     }
 }
 
-// --- 10. Extras (Vibración Móvil) ---
 function triggerVibration() {
-    // Comprueba si el dispositivo soporta la API de vibración
-    if (navigator.vibrate) {
-        navigator.vibrate(50); // Vibra por 50 milisegundos
-    }
+    if (navigator.vibrate) { navigator.vibrate(50); }
 }
 
-// --- Arrancar el sistema ---
 init();
