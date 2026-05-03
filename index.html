@@ -2,9 +2,18 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    
+    <!-- Etiquetas anti-caché para forzar siempre la última versión -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- Optimización móvil -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Control de Carga Forestal</title>
-    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Enlace al CSS con versionado (?v=1.1) para evitar caché -->
+    <link rel="stylesheet" href="styles.css?v=1.1">
 </head>
 <body>
     <header class="sticky-header">
@@ -34,18 +43,19 @@
             <div id="diameter-grid" class="btn-grid"></div>
         </section>
 
-<!-- 3. Sección de Cálculo Total -->
+        <!-- 3. Sección de Cálculo Total -->
         <section class="card total-section">
             <h2>Acumulado Total</h2>
             <div class="total-display">
                 <strong id="total-volume">0</strong> <span>m³</span>
             </div>
-            <!-- Nuevo contador de trozos -->
+            <!-- Contador de trozos -->
             <div class="total-qty-display">
                 <span>Cantidad de trozos: </span>
                 <strong id="total-qty">0</strong>
             </div>
         </section>
+
         <!-- 4. Sección de Controles y Registros -->
         <section class="card list-section">
             <div class="action-buttons">
@@ -58,20 +68,17 @@
                 <h2>Registros</h2>
             </div>
             <div id="records-list">
-                <!-- Los registros se inyectarán aquí -->
+                <!-- Los registros se inyectarán aquí dinámicamente -->
             </div>
         </section>
     </main>
 
-    <script src="script.js"></script>
-</section>
-    </main>
-
-    <!-- Agrega este bloque para tu firma -->
+    <!-- Firma profesional en el pie de página -->
     <footer>
         <p>Aplicación creada por Cristian Cárdenas Arellano</p>
     </footer>
 
-    <script src="script.js"></script>
+    <!-- ÚNICO llamado al script, ubicado al final del body para no retrasar la carga visual -->
+    <script src="script.js?v=1.1"></script>
 </body>
 </html>
