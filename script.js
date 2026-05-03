@@ -111,19 +111,26 @@ function saveBackup() {
 // --- RENDERIZADO Y PERSISTENCIA ---
 
 function renderList() {
+    const recordsList = document.getElementById('records-list');
+    const totalVolumeEl = document.getElementById('total-volume');
+    // 1. Referencia al nuevo elemento en el HTML
+    const totalQtyEl = document.getElementById('total-qty'); 
+    
     recordsList.innerHTML = '';
+    
     let totalAccumulated = 0;
+    let totalTrozos = 0; // 2. Nueva variable para sumar los trozos
 
-    // Mostramos la lista invertida para ver el último palo agregado arriba
+    // Mostrar del último al primero
     [...records].reverse().forEach((record, index) => {
+        // 3. Vamos sumando el volumen y la cantidad de trozos
         totalAccumulated += record.volume;
+        totalTrozos += record.quantity; 
+
+        const paloNum = records.length - index; 
 
         const recordDiv = document.createElement('div');
         recordDiv.className = 'record-item';
-        
-        // Calculamos un índice visual para saber qué número de palo es
-        const paloNum = records.length - index; 
-
         recordDiv.innerHTML = `
             <div class="record-info">
                 <div class="record-details">#${paloNum} - D: <b>${record.diameter}</b>cm | L: ${record.length}m | Cant: ${record.quantity}</div>
@@ -133,8 +140,13 @@ function renderList() {
         recordsList.appendChild(recordDiv);
     });
 
-    // Mostrar con 4 decimales para mayor precisión en madera
+    // 4. Actualizamos los textos en la pantalla
     totalVolumeEl.textContent = totalAccumulated.toFixed(4);
+    
+    // Si el elemento existe, actualiza el número
+    if (totalQtyEl) {
+        totalQtyEl.textContent = totalTrozos;
+    }
 }
 
 function saveToLocalStorage() {
