@@ -163,5 +163,86 @@ function loadFromLocalStorage() {
 function triggerVibration() {
     if (navigator.vibrate) { navigator.vibrate(50); }
 }
+// Agrega esta llamada dentro de tu función init() existente
+// setupExportButton();
 
+// --- 11. EXPORTAR A EXCEL (CSV) ---
+function setupExportButton() {
+    const btnExport = document.getElementById('btn-export');
+    if (!btnExport) return;
+
+    btnExport.onclick = () => {
+        if (records.length === 0) {
+            alert("No hay registros para exportar.");
+            return;
+        }
+
+        // 1. Agrupar los datos para hacer el resumen
+        const summary = {};
+        let totalGeneralTrozos = 0;
+        let totalGeneralVolumen = 0;
+
+        records.forEach(record => {
+            // Creamos una "llave" única combinando diámetro y largo (ej: "20-4.5")
+            const key = `${record.diameter}-${record.length}`;
+            
+            // Si esta combinación no existe en el resumen, la creamos
+            if (!summary[key]) {
+                summary[key] = { 
+                    diameter: record.diameter, 
+                    length: record.length, 
+                    quantity: 0, 
+                    volume: 0 
+                };
+            }
+            
+            // Sumamos las cantidades a ese grupo específico
+            const qty = parseInt(record.quantity) || 1;
+            summary[key].quantity += qty;
+            summary[key].volume += record.volume;
+            
+            // Sumamos a los totales generales
+            totalGeneralTrozos += qty;
+            totalGeneralVolumen += record.volume;
+        });
+
+        // 2. Preparar el texto CSV
+        // Fundamento: En Chile/Latinoamérica, Excel usa punto y coma (;) para separar columnas 
+        // y coma (,) para los decimales.
+        let csvContent = "Diametro (cm);Largo (m);Cantidad (trozos);Volumen (m3)\n";
+
+        // Convertimos el resumen a un arreglo y lo ordenamos de menor a mayor diámetro
+        const summaryArray = Object.values(summary).sort((a, b) => a.diameter - b.diameter);
+
+        summaryArray.forEach(row => {
+            const d = row.diameter;
+            // Cambiamos el punto por coma para que el Excel en español lo lea como número decimal
+            const l = row.length.toString().replace('.', ','); 
+            const q = row.quantity;
+            const v = row.volume.toFixed(4).replace('.', ',');
+            
+            csvContent += `${d};${l};${q};${v}\n`;
+        });
+
+        // Añadir una fila final con los totales absolutos
+        csvContent += `\nTOTAL;;${totalGeneralTrozos};${totalGeneralVolumen.toFixed(4).replace('.', ',')}\n`;
+
+        // 3. Crear el archivo y forzar la descarga en el celular
+        // El "\ufeff" asegura que los caracteres especiales se lean bien (BOM UTF-8)
+        const blob = new Blob(["\ufeff", csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        
+        // Generar un nombre de archivo con la fecha actual
+        const fecha = new Date().toISOString().slice(0, 10);
+        link.setAttribute("download", `Resumen_Carga_${fecha}.csv`);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        triggerVibration();
+    };
+}
 init();
