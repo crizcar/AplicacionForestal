@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- Optimización estricta para móviles: evita zoom al tocar inputs -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Control de Carga Forestal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Encabezado fijo con el total -->
+    <header class="sticky-header">
+        <h1>Control Forestal</h1>
+        <div class="total-container">
+            <span>Volumen Total:</span>
+            <strong id="total-volume">0</strong>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sección 1: Selector de Diámetro -->
+        <section class="card">
+            <h2>1. Seleccionar Diámetro (cm)</h2>
+            <!-- La grilla de botones se generará dinámicamente con JavaScript -->
+            <div id="diameter-grid" class="btn-grid"></div>
+        </section>
+
+        <!-- Sección 2: Ingreso manual de dimensiones -->
+        <section class="card inputs-section">
+            <h2>2. Dimensiones y Cantidad</h2>
+            
+            <div class="input-group">
+                <label for="length-input">Largo (metros)</label>
+                <!-- inputmode="decimal" despliega el teclado numérico con coma/punto en móviles -->
+                <input type="text" id="length-input" inputmode="decimal" placeholder="Ej: 4.5 o 4,5">
+            </div>
+
+            <div class="input-group">
+                <label for="qty-input">Cantidad de palos</label>
+                <!-- inputmode="numeric" asegura teclado numérico entero -->
+                <input type="number" id="qty-input" inputmode="numeric" placeholder="Ej: 10" min="1" step="1">
+            </div>
+
+            <button id="btn-add" class="btn-primary">Agregar Carga</button>
+        </section>
+
+        <!-- Sección 3: Historial de registros -->
+        <section class="card list-section">
+            <div class="list-header">
+                <h2>Registros Acumulados</h2>
+                <button id="btn-clear" class="btn-danger">Limpiar Carga</button>
+            </div>
+            <div id="records-list">
+                <!-- Los registros aparecerán aquí -->
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
