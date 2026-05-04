@@ -23,7 +23,7 @@ function generateDiameterButtons() {
     
     diameterGrid.innerHTML = ''; 
 
-    for (let i = 12; i <= 60; i += 2) {
+    for (let i = 16; i <= 60; i += 2) {
         const btn = document.createElement('button');
         btn.className = 'btn-dia';
         btn.textContent = i;
